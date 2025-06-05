@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopSphere | Tu tienda online</title>
+    <link rel="stylesheet" href="/css/misProductos.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilos adicionales para el modal de edición si es necesario */
+        /* Asegúrate de que .modal, .modal-content, .close-btn ya estén definidos en misProductos.css o aquí */
+        #editEstadoModal .modal-content {
+            width: 90%; /* Ajusta el ancho según sea necesario */
+            max-width: 400px;
+            text-align: center;
+        }
+        #editEstadoModal label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        #editEstadoModal select {
+            width: calc(100% - 20px); /* Ancho del select */
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #editEstadoModal button.submit-btn {
+            background-color: #007bff; /* Un color diferente para el botón de guardar estado */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #editEstadoModal button.submit-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<header class="header">
+    <div class="logo-container">
+        <a href="/shop">
+            <img src="/images/logoShopSphere2.png" alt="ShopSphere" class="logo">
+            <h1>ShopSphere</h1>
+        </a>
+    </div>
+
+    <div class="search-container">
+        <form action="/buscarProductos" method="get">
+            <input type="text" placeholder="Buscar productos..." class="search-bar" name="filtro">
+            <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+        </form>
+    </div>
+
+    <div class="user-actions">
+        <div class="cart-icon">
+            <a th:href="@{/carrito}" class="cart-link">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-count" th:text="${totalCarrito}">0</span>
+            </a>
+        </div>
+
+        <div class="profile-dropdown">
+            <button class="profile-btn" id="profileBtn">
+                <i class="fas fa-user-circle"></i>
+                <span>Mi perfil</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+
+            <div class="dropdown-menu" id="dropdownMenu">
+                <a href="/miCuenta"><i class="fas fa-user"></i> Mi cuenta</a>
+                <a href="/misPedidos"><i class="fas fa-box-open"></i> Mis pedidos</a>
+                <a href="/misProductos"><i class="fas fa-heart"></i> Mis productos</a>
+                <a href="/cerrarSesion"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="main-content">
+    <section class="featured-products" th:unless="${productos.isEmpty()}">
+        <h2 class="section-title">Mis Productos</h2>
+
+        <div class="products-grid">
+            <div class="product-card" th:each="producto : ${productos}">
+                <div class="img-wrapper">
+                    <img th:src="${producto.imagen}" class="product-img">
+
+                    <form th:action="@{/borrarProducto}" method="post">
+                        <input type="hidden" name="id_producto" th:value="${producto.id_producto}">
+                        <button type="submit" class="trash-btn" onclick="return confirm('¿Estás seguro?')">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="red" width="24px"
+                                 height="24px">
+                                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                            </svg>
+                        </button>
+                    </form>
+
+                </div>
+                <div class="product-info">
+                    <h3>
+                        <span th:text="${producto.nombre}"></span>
+                        <i class="fas fa-info-circle info-icon" th:title="${producto.descripcion}"></i>
+                    </h3>
+                    <div class="product-price">
+                        <span th:text="${producto.precio} + ' €'"></span>
+                        <span class="product-stock"> Stock: <span th:text="${producto.stock}"></span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <button type="button" class="nuevoProducto-btn" id="nuevoProductoBtn">
+        <i class="fas fa-plus-circle"></i>
+        <span>Subir nuevos productos</span>
+    </button>
+
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal" onclick="closeModal()">&times;</span>
+            <h2>Nuevo Producto</h2>
+            <form id="productForm" th:action="@{/crearProducto}" method="post">
+                <div class="form-group">
+                    <label for="productName">Nombre: <span class="required">*</span></label>
+                    <input type="text" id="productName" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Descripción: <span class="required">*</span></label>
+                    <textarea id="productDescription" rows="4" name="descripcion" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="stock">Cantidad: <span class="required">*</span></label>
+                    <input type="number" id="stock" min="1" name="stock" required>
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Categoría: <span class="required">*</span></label>
+                    <select id="productCategory" name="id_categoria" required>
+                        <option value="">Selecciona una categoría</option>
+                        <option th:each="categoria : ${categorias}"
+                                th:value="${categoria.id_categoria}"
+                                th:text="${categoria.nombre}">
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="productPrice">Precio (€): <span class="required">*</span></label>
+                    <input type="number" id="productPrice" step="0.01" min="0" name="precio" required>
+                </div>
+                <div class="form-group">
+                    <label for="productImage">Imagen (URL): <span class="required">*</span></label>
+                    <input type="text" id="productImage" name="url" placeholder="https://ejemplo.com/imagen.jpg">
+                </div>
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-save"></i> Guardar Producto
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <section class="featured-products" th:unless="${pedidosVendidos.isEmpty()}">
+        <h2 class="section-title">Productos vendidos</h2>
+
+        <div class="products-grid">
+            <div class="product-card" th:each="pedido : ${pedidosVendidos}">
+                <div class="img-wrapper">
+                    <img th:src="${pedido.productos[0].imagen}" class="product-img">
+                    <button type="button" class="trash-btn"
+                            th:data-idproducto="${pedido.productos[0].id_producto}"
+                            th:data-idpedido="${pedido.id_pedido}"
+                            onclick="openEditStateModal(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="blue" width="24px"
+                             height="24px">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3>
+                        <span th:text="${pedido.productos[0].nombre}"></span>
+                        <i class="fas fa-info-circle info-icon" th:title="${pedido.productos[0].descripcion}"></i>
+                    </h3>
+                    <div class="product-price">
+                        <span th:text="${pedido.productos[0].precio} + ' €'"></span>
+                        <span class="product-stock"> Cantidad pedida: <span
+                                th:text="${pedido.cantidadPedida}"></span></span>
+                        <span th:text="${pedido.estado.estado}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="editEstadoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeEditStateModal()">&times;</span>
+            <h2>Editar Estado del Pedido</h2>
+            <form id="editEstadoForm">
+                <input type="hidden" id="editPedidoId" name="id_pedido"> <input type="hidden" id="editProductoId">
+                <div class="form-group">
+                    <label for="selectEstado">Selecciona un nuevo estado:</label>
+                    <select id="selectEstado" name="id_estado" required>
+                        <option value="">Selecciona un estado</option>
+                        <option th:each="estado : ${listaEstados}"
+                                th:value="${estado.id_estado}"
+                                th:text="${estado.estado}"></option>
+                    </select>
+                </div>
+                <button type="submit" class="submit-btn">Guardar Estado</button>
+            </form>
+        </div>
+    </div>
+
+</main>
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>ShopSphere</h3>
+            <p>Tu tienda online favorita con los mejores productos al mejor precio.</p>
+        </div>
+
+        <div class="footer-section">
+            <h3>Enlaces rápidos</h3>
+            <ul>
+                <li><a href="/shop">Inicio</a></li>
+                <li><a href="#">Productos</a></li>
+                <li><a href="#">Ofertas</a></li>
+                <li><a href="#">Contacto</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>Contacto</h3>
+            <p><i class="fas fa-envelope"></i> info@shopsphere.com</p>
+            <p><i class="fas fa-phone"></i> +1 234 567 890</p>
+        </div>
+
+        <div class="footer-section">
+            <h3>Síguenos</h3>
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-pinterest"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <p>&copy; 2023 ShopSphere. Todos los derechos reservados.</p>
+    </div>
+</footer>
+
+<script>
+    // Menú desplegable del perfil (EXISTENTE)
+    const profileBtn = document.getElementById('profileBtn');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+
+    profileBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('show');
+    });
+
+    // Cerrar el menú al hacer clic fuera (EXISTENTE)
+    window.addEventListener('click', function() {
+        if (dropdownMenu.classList.contains('show')) {
+            dropdownMenu.classList.remove('show');
+        }
+    });
+
+    // Evitar que el clic en el menú lo cierre (EXISTENTE)
+    dropdownMenu.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // Lógica para el modal de subir nuevos productos (EXISTENTE)
+    document.addEventListener('DOMContentLoaded', function() {
+        const productModal = document.getElementById('productModal');
+        const newProductBtn = document.getElementById('nuevoProductoBtn');
+        const closeModalBtn = document.getElementById('closeModal');
+        const productForm = document.getElementById('productForm');
+
+        function closeProductModal() { // Renombrado para evitar conflicto
+            productForm.reset();
+            productModal.style.display = 'none';
+        }
+
+        newProductBtn.onclick = function() {
+            productModal.style.display = 'block';
+        }
+
+        closeModalBtn.onclick = closeProductModal;
+
+        window.onclick = function(event) {
+            if (event.target == productModal) {
+                closeProductModal();
+            }
+        }
+    });
+
+    // --- NUEVO JAVASCRIPT PARA EL MODAL DE EDICIÓN DE ESTADO ---
+
+    const editEstadoModal = document.getElementById('editEstadoModal');
+    const editPedidoIdInput = document.getElementById('editPedidoId');
+    const selectEstado = document.getElementById('selectEstado');
+    const editEstadoForm = document.getElementById('editEstadoForm');
+
+    // Función para abrir el modal de edición de estado
+    function openEditStateModal(button) {
+        const idPedido = button.dataset.idpedido;
+        editPedidoIdInput.value = idPedido;
+
+        // Optional: If you want to pre-select the current state of the order in the combobox
+        // You would need to add th:data-currentstateid="${pedido.estado.id}" to your edit button
+        // const currentStateId = button.dataset.currentstateid;
+        // if (currentStateId) {
+        //     selectEstado.value = currentStateId;
+        // } else {
+        //     selectEstado.value = ''; // Reset to default
+        // }
+
+        editEstadoModal.style.display = 'block';
+    }
+
+    // Función para cerrar el modal de edición de estado
+    function closeEditStateModal() {
+        editEstadoModal.style.display = 'none';
+        editEstadoForm.reset();
+    }
+
+    // Manejar el envío del formulario del modal de edición de estado
+    editEstadoForm.addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const idPedido = editPedidoIdInput.value;
+        const nuevoEstadoId = selectEstado.value;
+
+        if (!nuevoEstadoId) {
+            alert('Por favor, selecciona un estado.');
+            return;
+        }
+
+        // --- IMPORTANT: Prepare data as URL-encoded form data ---
+        const formData = new URLSearchParams();
+        formData.append('id_pedido', idPedido);
+        formData.append('id_estado', nuevoEstadoId); // This name must match @RequestParam in backend
+
+        // Send data to the backend to update the order state
+        fetch('/editarPedido', { // This URL must match your backend @PostMapping("/editarPedido")
+            method: 'POST',
+            headers: {
+                // This Content-Type is CRUCIAL for @RequestParam to work correctly
+                'Content-Type': 'application/x-www-form-urlencoded',
+                // If you are using Spring Security with CSRF protection,
+                // you would need to include the CSRF token here.
+                // Example (assuming you have a meta tag with the CSRF token):
+                // 'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').content,
+            },
+            body: formData.toString() // Send the URL-encoded string
+        })
+        .then(response => {
+            if (!response.ok) {
+                // If the response is not OK (e.g., 404, 500), try to get the error message
+                return response.text().then(text => { throw new Error(text || 'Error desconocido del servidor.'); });
+            }
+            // If the backend method is `void` or returns a `String`, use .text()
+            // If it returns a JSON object, use .json()
+            return response.text();
+        })
+        .then(message => {
+            // Display the success message received from the backend (if any)
+            alert('Estado del pedido actualizado con éxito!'); // Fallback message
+            closeEditStateModal();
+            window.location.reload(); // Reload the page to reflect the changes
+        })
+        .catch(error => {
+            console.error('Error al guardar el estado:', error);
+            alert('Hubo un error al actualizar el estado del pedido: ' + error.message);
+        });
+    });
+
+    // Close the edit modal if clicked outside
+    window.addEventListener('click', function(event) {
+        if (event.target == editEstadoModal) {
+            closeEditStateModal();
+        }
+    });
+
+</script>
+
+</body>
+</html>

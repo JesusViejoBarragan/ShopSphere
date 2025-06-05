@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopSphere | Tu tienda online</title>
+    <link rel="stylesheet" href="/css/shop.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<!-- Barra de navegación -->
+<header class="header">
+    <div class="logo-container">
+        <a href="/shop">
+            <img src="/images/logoShopSphere2.png" alt="ShopSphere" class="logo">
+            <h1>ShopSphere</h1>
+        </a>
+    </div>
+
+    <div class="search-container">
+        <form action="/buscarProductos" method="get">
+            <input type="text" placeholder="Buscar productos..." class="search-bar" name="filtro">
+            <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+        </form>
+    </div>
+
+    <div class="user-actions">
+        <div class="cart-icon">
+            <a th:href="@{/carrito}" class="cart-link">
+                <i class="fas fa-shopping-cart"></i>
+                <!--<span class="cart-count">3</span> CONTAR CUANTOS PEDIDOS TIENEN COMO ESTADO "EN CARRITO"-->
+            </a>
+        </div>
+
+        <div class="profile-dropdown">
+            <button class="profile-btn" id="profileBtn">
+                <i class="fas fa-user-circle"></i>
+                <span>Mi perfil</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+
+            <div class="dropdown-menu" id="dropdownMenu">
+                <a href="/miCuenta"><i class="fas fa-user"></i> Mi cuenta</a>
+                <a href="/misPedidos"><i class="fas fa-box-open"></i> Mis pedidos</a>
+                <a href="/misProductos"><i class="fas fa-heart"></i> Mis productos</a>
+                <a href="/cerrarSesion"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="main-content">
+    <!-- Productos destacados -->
+    <section class="featured-products" th:unless="${productos.isEmpty()}">
+        <h2 class="section-title">Productos destacados</h2>
+
+        <div class="products-grid">
+            <!-- Producto -->
+            <div class="product-card" th:each="producto : ${productos}">
+                <img th:src="${producto.imagen}" class="product-img">
+                <div class="product-info">
+                    <h3>
+                        <span th:text="${producto.nombre}"></span>
+                        <i class="fas fa-info-circle info-icon" th:title="${producto.descripcion}"></i>
+                    </h3>
+                    <div class="product-price" th:text="${producto.precio} + €"><span class="old-price">$29.99</span>
+                    </div>
+                    <div class="product-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span>(128)</span>
+                    </div>
+                    <form th:action="@{/pedidos/anyadirproducto}" method="post">
+                        <input type="hidden" name="id_producto" th:value="${producto.id_producto}">
+                        <button type="submit" class="add-to-cart">Añadir al carrito</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Pie de página -->
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>ShopSphere</h3>
+            <p>Tu tienda online favorita con los mejores productos al mejor precio.</p>
+        </div>
+
+        <div class="footer-section">
+            <h3>Enlaces rápidos</h3>
+            <ul>
+                <li><a href="#">Inicio</a></li>
+                <li><a href="#">Productos</a></li>
+                <li><a href="#">Ofertas</a></li>
+                <li><a href="#">Contacto</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>Contacto</h3>
+            <p><i class="fas fa-envelope"></i> info@shopsphere.com</p>
+            <p><i class="fas fa-phone"></i> +1 234 567 890</p>
+        </div>
+
+        <div class="footer-section">
+            <h3>Síguenos</h3>
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-pinterest"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <p>&copy; 2023 ShopSphere. Todos los derechos reservados.</p>
+    </div>
+</footer>
+<script>
+
+    // Menú desplegable del perfil
+const profileBtn = document.getElementById('profileBtn');
+const dropdownMenu = document.getElementById('dropdownMenu');
+
+profileBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    dropdownMenu.classList.toggle('show');
+});
+
+// Cerrar el menú al hacer clic fuera
+window.addEventListener('click', function() {
+    if (dropdownMenu.classList.contains('show')) {
+        dropdownMenu.classList.remove('show');
+    }
+});
+
+// Evitar que el clic en el menú lo cierre
+dropdownMenu.addEventListener('click', function(e) {
+    e.stopPropagation();
+});
+</script>
+</body>
+</html>

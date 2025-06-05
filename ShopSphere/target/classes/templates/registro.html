@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro | ShopSphere</title>
+    <link rel="stylesheet" href="/css/registro.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="register-background">
+    <div class="register-container">
+        <div class="register-header">
+            <div class="logo-container">
+                <div class="logo-circle">
+                    <i class="fas fa-globe logo-icon"></i>
+                </div>
+                <h1>ShopSphere</h1>
+            </div>
+            <h2>Únete a nuestra comunidad</h2>
+            <p>Regístrate para disfrutar de una experiencia de compra única</p>
+        </div>
+
+        <form class="register-form" id="registerForm" th:action="@{/registrarUsuario}" method="post">
+            <div th:if="${error}" class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-circle"></i>
+                <span th:text="${error}"></span>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success" role="alert">
+                <i class="fas fa-check-circle"></i>
+                <span th:text="${success}"></span>
+            </div>
+            <div class="form-row">
+                <div class="form-group half-width">
+                    <label for="nombre">Nombre <span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" id="nombre" name="nombre" placeholder="Ej: María" required>
+                    </div>
+                </div>
+
+                <div class="form-group half-width">
+                    <label for="apellidos">Apellidos <span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-users input-icon"></i>
+                        <input type="text" id="apellidos" name="apellidos" placeholder="Ej: González López" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Correo electrónico <span class="required">*</span></label>
+                <div class="input-with-icon">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="email" id="email" name="email" placeholder="tucorreo@example.com" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="direccion">Dirección </label>
+                <div class="input-with-icon">
+                    <i class="fas fa-map-marker-alt input-icon"></i>
+                    <input type="text" id="direccion" name="direccion" placeholder="Calle, número, ciudad, código postal">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group half-width">
+                    <label for="password">Contraseña <span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="password" name="contrasenya" placeholder="Mínimo 8 caracteres" required minlength="8">
+                        <i class="fas fa-eye toggle-password" onclick="togglePassword('password')"></i>
+                    </div>
+                    <div class="password-strength">
+                        <div class="strength-bars">
+                            <span class="strength-bar"></span>
+                            <span class="strength-bar"></span>
+                            <span class="strength-bar"></span>
+                        </div>
+                        <span class="strength-text">Seguridad: <span id="strengthLevel">baja</span></span>
+                    </div>
+                </div>
+
+                <div class="form-group half-width">
+                    <label for="confirmPassword">Repetir contraseña <span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="confirmPassword" placeholder="Repite la contraseña" required>
+                        <i class="fas fa-eye toggle-password" onclick="togglePassword('confirmPassword')"></i>
+                    </div>
+                    <span class="password-match" id="passwordMatch"></span>
+                </div>
+            </div>
+
+            <div class="form-group terms-group">
+                <input type="checkbox" id="terms" required>
+                <label for="terms">Acepto los <a href="#" class="terms-link">Términos y Condiciones</a> y la <a href="#" class="terms-link">Política de Privacidad</a> de ShopSphere</label>
+            </div>
+
+            <button type="submit" class="register-btn">
+                <span>Crear cuenta</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+
+            <div class="login-redirect">
+                <p>¿Ya tienes una cuenta? <a href="/" class="login-link">Inicia sesión</a></p>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    // Mostrar/ocultar contraseña
+    function togglePassword(fieldId) {
+        const passwordInput = document.getElementById(fieldId);
+        const toggleIcon = passwordInput.nextElementSibling;
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
+
+    // Validar fortaleza de contraseña
+    const password = document.getElementById('password');
+    const strengthBars = document.querySelectorAll('.strength-bar');
+    const strengthLevel = document.getElementById('strengthLevel');
+
+    password.addEventListener('input', function() {
+        const strength = calculatePasswordStrength(this.value);
+        updateStrengthIndicator(strength);
+    });
+
+    function calculatePasswordStrength(password) {
+        let strength = 0;
+
+        // Longitud mínima
+        if (password.length > 0) strength = 1;
+
+        // Contiene números y letras
+        if (password.length > 5 && /[0-9]/.test(password) && /[a-zA-Z]/.test(password)) strength = 2;
+
+        // Contiene caracteres especiales y es larga
+        if (password.length > 8 && /[0-9]/.test(password) && /[a-zA-Z]/.test(password) && /[^a-zA-Z0-9]/.test(password)) strength = 3;
+
+        return strength;
+    }
+
+    function updateStrengthIndicator(strength) {
+        // Actualizar barras de fuerza
+        strengthBars.forEach((bar, index) => {
+            if (index < strength) {
+                bar.style.backgroundColor = getStrengthColor(strength);
+                bar.style.opacity = '1';
+            } else {
+                bar.style.backgroundColor = '#e0e0e0';
+                bar.style.opacity = '0.5';
+            }
+        });
+
+        // Actualizar texto
+        const levels = ['débil', 'moderada', 'fuerte', 'muy fuerte'];
+        strengthLevel.textContent = levels[strength];
+        strengthLevel.style.color = getStrengthColor(strength);
+    }
+
+    function getStrengthColor(strength) {
+        const colors = ['#FF6584', '#FFC107', '#42C6FF', '#6C63FF'];
+        return colors[strength];
+    }
+
+    // Validar coincidencia de contraseñas
+    const confirmPassword = document.getElementById('confirmPassword');
+    const passwordMatch = document.getElementById('passwordMatch');
+
+    confirmPassword.addEventListener('input', validatePasswordMatch);
+
+    function validatePasswordMatch() {
+        if (password.value !== confirmPassword.value) {
+            passwordMatch.textContent = 'Las contraseñas no coinciden';
+            passwordMatch.style.color = '#FF6584';
+            return false;
+        } else if (confirmPassword.value.length > 0) {
+            passwordMatch.textContent = 'Las contraseñas coinciden';
+            passwordMatch.style.color = '#6C63FF';
+            return true;
+        } else {
+            passwordMatch.textContent = '';
+            return false;
+        }
+    }
+
+    // Validar formulario antes de enviar
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        if (!validatePasswordMatch()) {
+            e.preventDefault();
+            passwordMatch.textContent = 'Las contraseñas deben coincidir';
+            passwordMatch.style.color = '#FF6584';
+            confirmPassword.focus();
+        }
+
+        // Aquí podrías añadir más validaciones si necesitas
+    });
+</script>
+</body>
+</html>
